@@ -1,6 +1,8 @@
 import React, { CSSProperties } from 'react';
 import { Outlet } from 'react-router';
 import { Link } from 'react-router-dom';
+import { useDependency } from '../../hooks/useDependency';
+import { UserService } from '../../services/user/UserService';
 
 const AppBarHeight = 64;
 
@@ -24,7 +26,13 @@ const OutletContainerStyle = {
     overflow: 'auto'
 } as CSSProperties;
 
-export const AppBar = React.memo(({ children }) => {
+export const AppBar = React.memo(() => {
+
+    console.log(UserService);
+
+    const userService = useDependency(UserService) as UserService;
+
+    const user = userService.getUser();
 
     return (
         <div style={RootStyle}>
@@ -32,6 +40,7 @@ export const AppBar = React.memo(({ children }) => {
                 <Link to="">
                     AppBar
                 </Link>
+                <div>{user?.username}</div>
                 <Link to="/">
                     Home
                 </Link>
