@@ -1,9 +1,12 @@
 import { DependencyContainer } from '../utils/DependencyContainer';
+import { AbstractType, Type } from '../types/Type';
 
-export function useDependency<T> (type: { name: string }, qualifier?: string): T;
-export function useDependency<T> (qualifier: string): T;
+type Token<T = any> = Type<T> | AbstractType<T> | undefined;
 
-export function useDependency <T> (param1: { name: string } | string, param2?: string): T | undefined {
+export function useDependency<T> (token: Token<T>, qualifier?: string): T;
+export function useDependency<T = any> (qualifier: string): T;
+
+export function useDependency <T> (param1: Token<T> | string, param2?: string): T | undefined {
     if (typeof param1 === 'string') {
         return DependencyContainer.getDependency(param1);
     } else {

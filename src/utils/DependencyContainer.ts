@@ -1,17 +1,19 @@
-type ConcreteClass<T> = { new(): T };
+import { AbstractType, Type } from '../types/Type';
 
-type Dependency<T> =
+type Token<T = any> = Type<T> | AbstractType<T> | undefined;
+
+type DependencyDefinition<T = any> =
     /**
      * Concrete class dependencies can be declared using the class itself if no
      * qualifier or explicit value is needed.
      */
-    ConcreteClass<T> |
+    Type<T> |
     /**
      * Concrete class dependencies can also be declared with optional qualifier
      * and/or explicit value.
      */
     {
-        type: ConcreteClass<T>,
+        token: Type<T>,
         qualifier?: string,
         value?: T
     } |
@@ -20,7 +22,7 @@ type Dependency<T> =
      * Qualifier is still optional.
      */
     {
-        type: { name: string },
+        token: AbstractType<T>,
         qualifier?: string,
         value: T
     } |
@@ -28,76 +30,85 @@ type Dependency<T> =
      * Other dependencies must be declared with a qualifier and explicit value.
      */
     {
+        token?: undefined,
         qualifier: string,
         value: T
     };
 
-export class DependencyContainer {
+abstract class Class1 {
+    field = 'field';
+}
 
-    private static readonly _ValueTypeKey = '__value';
+class Class2 extends Class1 {}
+
+export class DependencyContainer {
 
     private static readonly _DefaultQualifier = 'default';
 
-    private static readonly _Dependencies: Record<string, Record<string, any>> = {};
+    private static readonly _Dependencies = new Map<Token, Record<string, any>>();
 
-    static registerDependencies(...dependencies: Array<Dependency<any>>) {
-        for (const dependency of dependencies) {
-            if (typeof dependency === 'function') {
-                this._constructAndRegisterDependency(dependency);
+    static test() {
+        this._registerDependency(Class1, new Class2());
+    }
+
+    static registerDependencies(...dependenciesDefinitions: Array<DependencyDefinition>) {
+        for (const dependencyDefinition of dependenciesDefinitions) {
+            if (typeof dependencyDefinition === 'function') {
+                this._instantiateAndRegisterDependency(dependencyDefinition);
                 continue;
             }
-            if (typeof dependency === 'object') {
-                const { type, qualifier, value } = dependency as any;
+            if (typeof dependencyDefinition === 'object') {
+                const { token, qualifier, value } = dependencyDefinition;
                 if (value !== undefined) {
-                    this._registerDependency(type?.name || this._ValueTypeKey, value, qualifier);
+                    this._registerDependency(token, value, qualifier);
+                    continue;
                 }
-                if (typeof type === 'function') {
-                    this._constructAndRegisterDependency(type, qualifier);
+                if (typeof token === 'function') {
+                    this._instantiateAndRegisterDependency(token as Type<any>, qualifier);
                     continue;
                 }
             }
-            console.error('Invalid dependency: ', dependency);
+            console.error('Invalid dependency: ', dependencyDefinition);
         }
     }
 
-    private static _constructAndRegisterDependency(type: ConcreteClass<any>, qualifier = this._DefaultQualifier): void {
-        const { name } = type;
-        const map = this._getMapByName(name);
+    private static _instantiateAndRegisterDependency(cls: Type<any>, qualifier = this._DefaultQualifier): void {
+        const map = this._getSubMapByToken(cls);
         if (map[qualifier]) {
-            console.error(`${name} is already registered with qualifier '${qualifier}'.'`);
+            console.error(`Dependency is already registered with qualifier '${qualifier}'`, cls);
             return;
         }
-        map[qualifier] = new type();
+        map[qualifier] = new cls();
     }
 
-    private static _registerDependency(name: string, value: any, qualifier = this._DefaultQualifier): void {
-        const map = this._getMapByName(name);
+    private static _registerDependency<T>(token: Token<T>, value: T, qualifier = this._DefaultQualifier): void {
+        const map = this._getSubMapByToken(token);
         if (map[qualifier]) {
-            console.error(`${name} is already registered with qualifier '${qualifier}'.'`);
+            console.error(`Dependency is already registered with qualifier '${qualifier}'`, token);
             return;
         }
         map[qualifier] = value;
     }
 
-    static getDependency<T> (type: { name: string }, qualifier?: string): T;
-    static getDependency<T> (qualifier: string): T;
-    static getDependency<T>(param1: { name: string } | string, param2?: string): T | undefined {
+    static getDependency<T> (token: Token<T>, qualifier?: string): T | undefined;
+    static getDependency<T = any> (qualifier: string): T  | undefined;
+    static getDependency<T>(param1: Token<T> | string, param2?: string): T | undefined {
         let map;
         let qualifier;
         if (typeof param1 === 'string') {
-            map = this._getMapByName(this._ValueTypeKey);
+            map = this._getSubMapByToken(undefined);
             qualifier = param1;
         } else {
-            map = this._getMapByName(param1.name);
+            map = this._getSubMapByToken(param1);
             qualifier = param2 || this._DefaultQualifier;
         }
         return map?.[qualifier];
     }
 
-    private static _getMapByName(name: string): Record<string, any> {
-        let map = this._Dependencies[name];
+    private static _getSubMapByToken(token: Token): Record<string, any> {
+        let map = this._Dependencies.get(token);
         if (!map) {
-            map = this._Dependencies[name] = {};
+            this._Dependencies.set(token, map = {});
         }
         return map;
     }

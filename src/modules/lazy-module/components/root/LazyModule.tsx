@@ -1,8 +1,13 @@
 import React from 'react';
 import { Link, useRoutes } from 'react-router-dom';
+import { useDependency } from '../../../../hooks/useDependency';
+import { RandomService } from '../../../../services/random/RandomService';
 
 
 const ModuleRoutes = React.memo(() => {
+
+    const randomService = useDependency(RandomService);
+
     return useRoutes([
         {
             path: '/',
@@ -21,6 +26,7 @@ const ModuleRoutes = React.memo(() => {
             path: 'test',
             element: (
                 <div>
+                    <div>{randomService.currentNumber}</div>
                     <Link to="../">Back</Link>
                 </div>
             )

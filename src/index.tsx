@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { Root } from './components/root/Root';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
-import { BookService } from './services/book/BookService';
+import { RandomService } from './services/random/RandomService';
 import { UserService } from './services/user/UserService';
 import { MockUserService } from './services/user/MockUserService';
 import { WebUserService } from './services/user/WebUserService';
@@ -12,12 +12,10 @@ import { DependencyContainer } from './utils/DependencyContainer';
 
 const isMock = process.env.REACT_APP_MOCK === 'true';
 
-console.log("HELLO?")
-
 DependencyContainer.registerDependencies(
-    BookService,
+    RandomService,
     {
-        type: UserService,
+        token: UserService,
         value: isMock ? new MockUserService() : new WebUserService()
     }
 );
@@ -25,14 +23,14 @@ DependencyContainer.registerDependencies(
 // if (isMock) {
 //     DependencyContainer.registerDependencies(
 //         {
-//             type: UserService,
+//             token: UserService,
 //             value: new MockUserService()
 //         }
 //     );
 // } else {
 //     DependencyContainer.registerDependencies(
 //         {
-//             type: UserService,
+//             token: UserService,
 //             value: new WebUserService()
 //         }
 //     );

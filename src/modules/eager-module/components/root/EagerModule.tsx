@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useRoutes } from 'react-router-dom';
+import { GenerateRandom } from '../generate-random/GenerateRandom';
 
 
 const ModuleRoutes = React.memo(() => {
@@ -21,6 +22,7 @@ const ModuleRoutes = React.memo(() => {
             path: 'test',
             element: (
                 <div>
+                    <GenerateRandom />
                     <Link to="../">Back</Link>
                 </div>
             )
