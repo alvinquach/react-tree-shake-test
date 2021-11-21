@@ -1,6 +1,6 @@
 import { AbstractType, Type } from '../types/Type';
 
-type Token<T = any> = Type<T> | AbstractType<T> | undefined;
+type Token<T = any> = Type<T> | AbstractType<T>;
 
 type DependencyDefinition<T = any> =
     /**
@@ -45,7 +45,9 @@ export class DependencyContainer {
 
     private static readonly _DefaultQualifier = 'default';
 
-    private static readonly _Dependencies = new Map<Token, Record<string, any>>();
+    private static readonly _Dependencies = new Map<Token | undefined, Record<string, any>>();
+
+    static readonly InjectablePropertiesMap = new Map<Token, Record<string, any>>();
 
     static test() {
         this._registerDependency(Class1, new Class2());
@@ -81,7 +83,7 @@ export class DependencyContainer {
         map[qualifier] = new cls();
     }
 
-    private static _registerDependency<T>(token: Token<T>, value: T, qualifier = this._DefaultQualifier): void {
+    private static _registerDependency<T>(token: Token<T> | undefined, value: T, qualifier = this._DefaultQualifier): void {
         const map = this._getSubMapByToken(token);
         if (map[qualifier]) {
             console.error(`Dependency is already registered with qualifier '${qualifier}'`, token);
@@ -105,7 +107,7 @@ export class DependencyContainer {
         return map?.[qualifier];
     }
 
-    private static _getSubMapByToken(token: Token): Record<string, any> {
+    private static _getSubMapByToken(token: Token | undefined): Record<string, any> {
         let map = this._Dependencies.get(token);
         if (!map) {
             this._Dependencies.set(token, map = {});

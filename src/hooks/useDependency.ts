@@ -1,7 +1,7 @@
 import { DependencyContainer } from '../utils/DependencyContainer';
 import { AbstractType, Type } from '../types/Type';
 
-type Token<T = any> = Type<T> | AbstractType<T> | undefined;
+type Token<T = any> = Type<T> | AbstractType<T>;
 
 export function useDependency<T> (token: Token<T>, qualifier?: string): T;
 export function useDependency<T = any> (qualifier: string): T;

@@ -1,14 +1,15 @@
+import { Inject } from '../../decorators/Inject';
+import { RandomService } from '../random/RandomService';
 
 export abstract class UserService {
 
+    @Inject(RandomService)
+    protected readonly _randomService!: RandomService;
+
     abstract getUser(): { id: string, username: string };
 
-    protected _generateId(length = 10): string {
-        let result = '';
-        for (let i = 0; i < length; i++) {
-            result += ~~(Math.random() * 10);
-        }
-        return result;
+    protected _generateId(): string {
+        return String(this._randomService.generateRandomNumber());
     }
 
 }

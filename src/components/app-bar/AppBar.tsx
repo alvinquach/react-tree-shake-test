@@ -28,10 +28,8 @@ const OutletContainerStyle = {
 
 export const AppBar = React.memo(() => {
 
-    console.log(UserService);
-
     const userService = useDependency(UserService);
-
+    
     const user = userService.getUser();
 
     return (
